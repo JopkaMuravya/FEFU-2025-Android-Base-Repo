@@ -2,4 +2,6 @@
 <resources>
 
     <style name="Theme.FEFU2025AndroidBaseRepo" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.FEFU2025AndroidActivity" parent="Theme.AppCompat.Light.NoActionBar" />
+
 </resources>
