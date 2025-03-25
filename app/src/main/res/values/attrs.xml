@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="AnimeGenreView">
+        <attr name="backgroundColor" format="color" />
+        <attr name="genreName" format="string" />
+    </declare-styleable>
+</resources>
