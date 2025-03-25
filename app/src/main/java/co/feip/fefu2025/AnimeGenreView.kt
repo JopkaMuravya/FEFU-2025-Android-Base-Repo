@@ -5,7 +5,6 @@ import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
-import android.util.Log
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.view.LayoutInflater
