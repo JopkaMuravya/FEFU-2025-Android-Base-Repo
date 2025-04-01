@@ -83,7 +83,9 @@ fun AnimeCard(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .height(50.dp)
             )
 
             Row(
