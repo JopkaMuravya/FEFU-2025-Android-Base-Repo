@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,6 +30,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 
+import co.feip.fefu2025.RatingData
+import co.feip.fefu2025.RatingChart
+import co.feip.fefu2025.AnimeCardData
+import co.feip.fefu2025.AnimeCard
+
 data class AnimeDetails(
     val imageRes: Int,
     val title: String,
@@ -35,7 +42,9 @@ data class AnimeDetails(
     val description: String,
     val rating: Float,
     val year: Int,
-    val episodes: Int
+    val episodes: Int,
+    val ratings: List<RatingData>,
+    val recommendedAnime: List<AnimeCardData>
 )
 
 @Composable
@@ -110,6 +119,38 @@ fun AnimeDetailScreen(
             text = anime.description,
             style = MaterialTheme.typography.bodyMedium
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        RatingChart(
+            ratings = anime.ratings,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Может понравиться",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(anime.recommendedAnime) { animeItem ->
+                AnimeCard(
+                    data = animeItem,
+                    modifier = Modifier.width(200.dp)
+                )
+            }
+        }
     }
 }
 
@@ -225,10 +266,37 @@ fun AnimeDetailScreenPreview() {
                     ),
                     description = "Сон Джин-У - самый слабый охотник в мире. " +
                             "Он сражается с монстрами, рискуя жизнью, но после " +
+                            "загадочных событий получает уникальную способность..." +
+                            "Сон Джин-У - самый слабый охотник в мире. " +
+                            "Он сражается с монстрами, рискуя жизнью, но после " +
                             "загадочных событий получает уникальную способность...",
                     rating = 9.8f,
                     year = 2024,
-                    episodes = 12
+                    episodes = 12,
+                    ratings = listOf(
+                        RatingData(1, 100),
+                        RatingData(2, 50),
+                        RatingData(3, 200),
+                        RatingData(4, 150),
+                        RatingData(5, 300),
+                        RatingData(6, 250),
+                        RatingData(7, 400),
+                        RatingData(8, 350),
+                        RatingData(9, 450),
+                        RatingData(10, 500)
+                    ),
+                    recommendedAnime = listOf(
+                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
+                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
+                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
+                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
+                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
+                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
+                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
+                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
+                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
+                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
+                    )
                 )
             )
         }
