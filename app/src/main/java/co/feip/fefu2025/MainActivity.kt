@@ -1,8 +1,13 @@
 package co.feip.fefu2025
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -24,8 +29,11 @@ import kotlinx.serialization.Serializable
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-            val navController: NavHostController = rememberNavController()
+            val navController = rememberNavController()
+
+            HandleDeepLinks(navController, intent)
 
             NavHost(
                 navController = navController,
@@ -67,6 +75,34 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) }
                     )
+                }
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+}
+
+@Composable
+fun HandleDeepLinks(navController: NavHostController, intent: Intent) {
+    val currentIntent = remember { intent }
+
+    LaunchedEffect(currentIntent) {
+        val data: Uri? = currentIntent.data
+        if (data != null && data.scheme == "mysuperapp" && data.host == "anime") {
+            val pathSegments = data.pathSegments
+            if (pathSegments.isNotEmpty()) {
+                val id = pathSegments.last().toIntOrNull()
+                id?.let {
+                    navController.navigate(Destination.AnimeDetails(it)) {
+                        popUpTo(Destination.MainScreen) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }
             }
         }
