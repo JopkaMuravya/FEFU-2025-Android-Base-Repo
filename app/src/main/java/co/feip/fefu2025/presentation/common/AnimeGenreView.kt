@@ -1,4 +1,4 @@
-package co.feip.fefu2025
+package co.feip.fefu2025.presentation.common
 
 import android.content.Context
 import android.content.res.TypedArray
@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.view.LayoutInflater
+import co.feip.fefu2025.R
 
 class AnimeGenreView @JvmOverloads constructor(
     context: Context,
@@ -21,7 +22,9 @@ class AnimeGenreView @JvmOverloads constructor(
         val view = LayoutInflater.from(context).inflate(R.layout.view_anime_genre, this, true)
         genreNameText = view.findViewById(R.id.genre_name)
 
-        val typedArray: TypedArray = context.obtainStyledAttributes(attrs, R.styleable.AnimeGenreView)
+        val typedArray: TypedArray = context.obtainStyledAttributes(attrs,
+            R.styleable.AnimeGenreView
+        )
         val backgroundColor = typedArray.getColor(R.styleable.AnimeGenreView_backgroundColor, Color.BLACK)
         val genreName = typedArray.getString(R.styleable.AnimeGenreView_genreName) ?: "Жанр"
 
