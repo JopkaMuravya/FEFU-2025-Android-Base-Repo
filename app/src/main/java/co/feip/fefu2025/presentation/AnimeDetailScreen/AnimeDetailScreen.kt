@@ -6,6 +6,8 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -28,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import co.feip.fefu2025.presentation.common.MyFlexBoxLayout
 import co.feip.fefu2025.domain.models.AnimeGenre
 import co.feip.fefu2025.presentation.AnimeDetailScreen.components.RatingChart
@@ -49,8 +52,8 @@ import co.feip.fefu2025.presentation.common.AnimeCard
 fun AnimeDetailScreen(
     state: AnimeDetailsState,
     modifier: Modifier = Modifier,
-    navigateToDetails: (Int) -> Unit
-
+    navigateToDetails: (Int) -> Unit,
+    navigateToRecommended: (List<Int>) -> Unit
 ) {
     val details = state.details
     details?.let {
@@ -135,9 +138,21 @@ fun AnimeDetailScreen(
 
             Text(
                 text = "Может понравиться",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    textDecoration = TextDecoration.Underline,
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 12.dp)
+                modifier = Modifier
+                    .padding(bottom = 12.dp)
+                    .clickable {
+                        val recommendedIds = state.details?.recommendedAnime?.map { it.id } ?: emptyList()
+                        navigateToRecommended(recommendedIds)
+                    }
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        shape = MaterialTheme.shapes.small
+                    )
             )
 
 

@@ -31,8 +31,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="mainapp"
-                    android:host="test" />
+                    android:scheme="mysuperapp"
+                    android:host="anime" />
             </intent-filter>
         </activity>
 
@@ -44,14 +44,6 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="mysuperapp"
-                    android:host="test" />
             </intent-filter>
         </activity>
 

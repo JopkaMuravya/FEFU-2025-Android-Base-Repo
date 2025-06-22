@@ -1,9 +1,16 @@
 package co.feip.fefu2025
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -15,19 +22,19 @@ import co.feip.fefu2025.presentation.AnimeDetailScreen.AnimeDetailScreenViewMode
 import co.feip.fefu2025.presentation.AnimeDetailScreen.AnimeDetailsViewModelFactory
 import co.feip.fefu2025.presentation.MainAnimeScreen.MainAnimeScreen
 import co.feip.fefu2025.presentation.MainAnimeScreen.MainAnimeScreenViewModel
+import co.feip.fefu2025.presentation.RecommendedAnimeScreen.RecommendedAnimeScreen
+import co.feip.fefu2025.presentation.RecommendedAnimeScreen.RecommendedAnimeScreenViewModel
 import kotlinx.serialization.Serializable
 
 class MainActivity : ComponentActivity() {
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent{
 
+        setContent {
+            val navController = rememberNavController()
 
+            HandleDeepLinks(navController, intent)
 
-            val navController: NavHostController = rememberNavController()
-            
             NavHost(
                 navController = navController,
                 startDestination = Destination.MainScreen
@@ -41,28 +48,74 @@ class MainActivity : ComponentActivity() {
                         navigateTODetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
                     )
                 }
-                composable<Destination.AnimeDetails> {
-                    val id = it.toRoute<Destination.AnimeDetails>().id
-                    println(id)
+
+                composable<Destination.AnimeDetails> { backStackEntry ->
+                    val id = backStackEntry.toRoute<Destination.AnimeDetails>().id
                     val factory = AnimeDetailsViewModelFactory(id)
                     val viewModel: AnimeDetailScreenViewModel = viewModel(factory = factory)
-                    val state = viewModel.state
                     AnimeDetailScreen(
-                        state = state,
+                        state = viewModel.state,
                         modifier = Modifier,
                         navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
+                        navigateToRecommended = { ids -> navController.navigate(Destination.RecommendedAnime(ids)) }
+                    )
+                }
+
+                composable<Destination.RecommendedAnime> { backStackEntry ->
+                    val args = backStackEntry.toRoute<Destination.RecommendedAnime>()
+                    val viewModel: RecommendedAnimeScreenViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return RecommendedAnimeScreenViewModel(args.animeIds) as T
+                            }
+                        }
+                    )
+                    RecommendedAnimeScreen(
+                        state = viewModel.state,
+                        navController = navController,
+                        navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) }
                     )
                 }
             }
-
         }
+    }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
     }
 }
 
-sealed class Destination{
+@Composable
+fun HandleDeepLinks(navController: NavHostController, intent: Intent) {
+    val currentIntent = remember { intent }
+
+    LaunchedEffect(currentIntent) {
+        val data: Uri? = currentIntent.data
+        if (data != null && data.scheme == "mysuperapp" && data.host == "anime") {
+            val pathSegments = data.pathSegments
+            if (pathSegments.isNotEmpty()) {
+                val id = pathSegments.last().toIntOrNull()
+                id?.let {
+                    navController.navigate(Destination.AnimeDetails(it)) {
+                        popUpTo(Destination.MainScreen) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+            }
+        }
+    }
+}
+
+sealed class Destination {
     @Serializable
-    data class AnimeDetails(val id: Int): Destination()
+    data class AnimeDetails(val id: Int) : Destination()
+
     @Serializable
-    data object MainScreen: Destination()
+    data object MainScreen : Destination()
+
+    @Serializable
+    data class RecommendedAnime(val animeIds: List<Int>) : Destination()
 }
