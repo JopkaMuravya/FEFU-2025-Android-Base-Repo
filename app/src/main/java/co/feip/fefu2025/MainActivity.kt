@@ -1,35 +1,68 @@
 package co.feip.fefu2025
 
-import android.graphics.Color
 import android.os.Bundle
-import android.widget.Button
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import co.feip.fefu2025.presentation.AnimeDetailScreen.AnimeDetailScreen
+import co.feip.fefu2025.presentation.AnimeDetailScreen.AnimeDetailScreenViewModel
+import co.feip.fefu2025.presentation.AnimeDetailScreen.AnimeDetailsViewModelFactory
+import co.feip.fefu2025.presentation.MainAnimeScreen.MainAnimeScreen
+import co.feip.fefu2025.presentation.MainAnimeScreen.MainAnimeScreenViewModel
+import kotlinx.serialization.Serializable
 
+class MainActivity : ComponentActivity() {
 
-class MainActivity : AppCompatActivity() {
-
-    private val genres = listOf(
-        "Сёнен" to Color.parseColor("#0000FF"),
-        "Сёдзё" to Color.parseColor("#FF1493"),
-        "Сэйнен" to Color.parseColor("#FF00FF"),
-        "Дзёсэй" to Color.parseColor("#800080"),
-        "Исссссссекай" to Color.parseColor("#DC143C")
-    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContent{
 
-        val button = findViewById<Button>(R.id.add_button)
-        val myLayout = findViewById<MyFlexBoxLayout>(R.id.flexbox_layout)
 
-        button.setOnClickListener {
-            val (name, color) = genres.random()
-            val genreView = AnimeGenreView(this)
-            genreView.setGenreName(name)
-            genreView.setBackColor(color)
-            myLayout.addView(genreView)
+
+            val navController: NavHostController = rememberNavController()
+            
+            NavHost(
+                navController = navController,
+                startDestination = Destination.MainScreen
+            ) {
+                composable<Destination.MainScreen> {
+                    val viewModel: MainAnimeScreenViewModel = viewModel()
+                    MainAnimeScreen(
+                        state = viewModel.state,
+                        modifier = Modifier,
+                        onQueryChange = viewModel::onQueryChange,
+                        navigateTODetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
+                    )
+                }
+                composable<Destination.AnimeDetails> {
+                    val id = it.toRoute<Destination.AnimeDetails>().id
+                    println(id)
+                    val factory = AnimeDetailsViewModelFactory(id)
+                    val viewModel: AnimeDetailScreenViewModel = viewModel(factory = factory)
+                    val state = viewModel.state
+                    AnimeDetailScreen(
+                        state = state,
+                        modifier = Modifier,
+                        navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
+                    )
+                }
+            }
+
         }
 
     }
+}
+
+sealed class Destination{
+    @Serializable
+    data class AnimeDetails(val id: Int): Destination()
+    @Serializable
+    data object MainScreen: Destination()
 }

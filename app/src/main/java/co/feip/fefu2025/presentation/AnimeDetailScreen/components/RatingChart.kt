@@ -1,4 +1,4 @@
-package co.feip.fefu2025
+package co.feip.fefu2025.presentation.AnimeDetailScreen.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -21,7 +21,7 @@ data class RatingData(
 
 @Composable
 fun RatingChart(
-    ratings: List<RatingData>,
+    ratings: List<co.feip.fefu2025.domain.models.RatingData>,
     modifier: Modifier = Modifier
 ) {
     val maxUserCount = ratings.maxOf { it.userCount }
@@ -130,21 +130,21 @@ fun RatingChart(
     }
 }
 
-@Preview(showBackground = true, widthDp = 400)
-@Composable
-fun PreviewRatingChart() {
-    val sampleData = listOf(
-        RatingData(1, 100),
-        RatingData(2, 50),
-        RatingData(3, 200),
-        RatingData(4, 150),
-        RatingData(5, 300),
-        RatingData(6, 250),
-        RatingData(7, 400),
-        RatingData(8, 350),
-        RatingData(9, 450),
-        RatingData(10, 500)
-    )
-
-    RatingChart(ratings = sampleData)
-}
+//@Preview(showBackground = true, widthDp = 400)
+//@Composable
+//fun PreviewRatingChart() {
+//    val sampleData = listOf(
+//        RatingData(1, 100),
+//        RatingData(2, 50),
+//        RatingData(3, 200),
+//        RatingData(4, 150),
+//        RatingData(5, 300),
+//        RatingData(6, 250),
+//        RatingData(7, 400),
+//        RatingData(8, 350),
+//        RatingData(9, 450),
+//        RatingData(10, 500)
+//    )
+//
+//    RatingChart(ratings = sampleData)
+//}

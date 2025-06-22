@@ -1,8 +1,9 @@
-package co.feip.fefu2025
+package co.feip.fefu2025.presentation.common
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,28 +32,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import co.feip.fefu2025.AnimeGenre
+import co.feip.fefu2025.domain.models.AnimeCard
+import co.feip.fefu2025.domain.models.AnimeGenre
 
-
-data class AnimeCardData(
-    val imageRes: Int,
-    val title: String,
-    val genres: List<AnimeGenre>,
-    val rating: Float,
-    val episodes: Int? = null
-)
 
 @Composable
 fun AnimeCard(
-    data: AnimeCardData,
-    modifier: Modifier = Modifier
+    data: AnimeCard,
+    modifier: Modifier = Modifier,
+    navigateToDetails: (Int) -> Unit
 ) {
     Card(
         modifier = modifier
-            .width(200.dp),
+            .width(200.dp).clickable { navigateToDetails(data.id) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -130,19 +124,19 @@ private fun GenreChip(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(
-                genre.color.copy(alpha = 0.12f),
+                Color(genre.color).copy(alpha = 0.12f),
                 RoundedCornerShape(16.dp)
             )
             .border(
                 width = 1.dp,
-                color = genre.color.copy(alpha = 0.24f),
+                color = Color(genre.color).copy(alpha = 0.24f),
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(
             text = genre.name,
-            color = genre.color,
+            color = Color(genre.color),
             fontSize = 10.sp,
             style = MaterialTheme.typography.labelSmall
         )
@@ -173,23 +167,23 @@ private fun RatingBar(
     }
 }
 
-@Preview
-@Composable
-fun AnimeCardPreview() {
-    MaterialTheme {
-        AnimeCard(
-            data = AnimeCardData(
-                imageRes = R.drawable.sololeveling1,
-                title = "Поднятие уровня в одиночку",
-                genres = listOf(
-                    AnimeGenre("Иссекай", Color(0xFFE91E63)),
-                    AnimeGenre("Сёнен", Color(0xFF3F51B5)),
-                    AnimeGenre("Фэнтези", Color(0xFF4CAF50))
-                ),
-                rating = 9.8f,
-                episodes = 12
-            ),
-            modifier = Modifier.padding(10.dp)
-        )
-    }
-}
+//@Preview
+//@Composable
+//fun AnimeCardPreview() {
+//    MaterialTheme {
+//        AnimeCard(
+//            data = AnimeCardData(
+//                imageRes = R.drawable.sololeveling1,
+//                title = "Поднятие уровня в одиночку",
+//                genres = listOf(
+//                    AnimeGenre("Иссекай", Color(0xFFE91E63)),
+//                    AnimeGenre("Сёнен", Color(0xFF3F51B5)),
+//                    AnimeGenre("Фэнтези", Color(0xFF4CAF50))
+//                ),
+//                rating = 9.8f,
+//                episodes = 12
+//            ),
+//            modifier = Modifier.padding(10.dp)
+//        )
+//    }
+//}
