@@ -19,15 +19,25 @@ class RecommendedAnimeScreenViewModel(
         loadRecommendedAnime()
     }
 
-    private fun loadRecommendedAnime() {
+    fun loadRecommendedAnime() {
         viewModelScope.launch {
-            state = state.copy(isLoading = true)
+            state = state.copy(
+                isLoading = true,
+                error = null
+            )
+
             try {
                 val allAnime = getAnimeUseCase()
                 val recommended = allAnime.filter { it.id in animeIds }
-                state = state.copy(animeList = recommended, isLoading = false)
+                state = state.copy(
+                    animeList = recommended,
+                    isLoading = false
+                )
             } catch (e: Exception) {
-                state = state.copy(error = e.message, isLoading = false)
+                state = state.copy(
+                    isLoading = false,
+                    error = e.message ?: "Неизвестная ошибка"
+                )
             }
         }
     }

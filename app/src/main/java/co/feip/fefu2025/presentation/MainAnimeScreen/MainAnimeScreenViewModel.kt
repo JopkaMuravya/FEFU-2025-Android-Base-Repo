@@ -9,23 +9,37 @@ import co.feip.fefu2025.domain.use_cases.GetAnimeUseCase
 import kotlinx.coroutines.launch
 
 class MainAnimeScreenViewModel: ViewModel() {
-    val getAnimeUseCase = GetAnimeUseCase()
+    private val getAnimeUseCase = GetAnimeUseCase()
     var state by mutableStateOf(MainAnimeScreenState())
         private set
+
     init {
-        getAnime()
+        loadAnime()
     }
-    private fun getAnime(){
+
+    fun loadAnime() {
+        state = state.copy(
+            isLoading = true,
+            error = null
+        )
+
         viewModelScope.launch {
-            val anime = getAnimeUseCase()
-            state = state.copy(animeList = anime)
+            try {
+                val anime = getAnimeUseCase()
+                state = state.copy(
+                    animeList = anime,
+                    isLoading = false
+                )
+            } catch (e: Exception) {
+                state = state.copy(
+                    isLoading = false,
+                    error = e.message ?: "Неизвестная ошибка"
+                )
+            }
         }
     }
 
-    fun onQueryChange(query: String){
-        state = state.copy(
-            searchQuery = query
-        )
+    fun onQueryChange(query: String) {
+        state = state.copy(searchQuery = query)
     }
-
 }

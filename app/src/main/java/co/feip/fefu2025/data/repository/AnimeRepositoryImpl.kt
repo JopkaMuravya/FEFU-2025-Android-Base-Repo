@@ -6,6 +6,8 @@ import co.feip.fefu2025.domain.models.AnimeDetails
 import co.feip.fefu2025.domain.models.AnimeGenre
 import co.feip.fefu2025.domain.models.RatingData
 import co.feip.fefu2025.domain.repository.AnimeRepository
+import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 class AnimeRepositoryImpl : AnimeRepository {
     val anime = AnimeCard(
@@ -22,6 +24,10 @@ class AnimeRepositoryImpl : AnimeRepository {
     )
     val animeList = List(10) { id -> anime.copy(id = id) }
     override suspend fun getAnimeCards(): List<AnimeCard> {
+        delay(2000)
+        if (Random.nextBoolean()) {
+            throw Exception("Ошибка загрузки данных")
+        }
         return animeList
     }
 
@@ -62,6 +68,10 @@ class AnimeRepositoryImpl : AnimeRepository {
     )
     val listOfAnimeData = List(10){id -> data.copy(id=id)}
     override suspend fun getAnimeDetailsById(id: Int): AnimeDetails? {
+        delay(1500)
+        if (Random.nextBoolean()) {
+            throw Exception("Ошибка загрузки данных")
+        }
         return listOfAnimeData.find{ data->
             data.id == id
         }

@@ -31,151 +31,193 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import co.feip.fefu2025.presentation.common.MyFlexBoxLayout
+import co.feip.fefu2025.domain.models.AnimeDetails
 import co.feip.fefu2025.domain.models.AnimeGenre
 import co.feip.fefu2025.presentation.AnimeDetailScreen.components.RatingChart
 import co.feip.fefu2025.presentation.common.AnimeCard
-
-//data class AnimeDetails(
-//    val imageRes: Int,
-//    val title: String,
-//    val genres: List<AnimeGenre>,
-//    val description: String,
-//    val rating: Float,
-//    val year: Int,
-//    val episodes: Int,
-//    val ratings: List<RatingData>,
-//    val recommendedAnime: List<AnimeCardData>
-//)
+import co.feip.fefu2025.presentation.common.MyFlexBoxLayout
 
 @Composable
 fun AnimeDetailScreen(
     state: AnimeDetailsState,
     modifier: Modifier = Modifier,
     navigateToDetails: (Int) -> Unit,
-    navigateToRecommended: (List<Int>) -> Unit
+    navigateToRecommended: (List<Int>) -> Unit,
+    onRetry: () -> Unit
 ) {
-    val details = state.details
-    details?.let {
-        Column(
-            modifier = modifier
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-            Image(
-                painter = painterResource(id = details.imageRes),
-                contentDescription = details.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = details.title,
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                RatingInfo(rating = details.rating)
-                Spacer(modifier = Modifier.width(16.dp))
-                YearInfo(year = details.year)
-                Spacer(modifier = Modifier.width(16.dp))
-                EpisodesInfo(episodes = details.episodes)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Жанры:",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            FlexBoxGenreLayout(
-                genres = details.genres,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Описание:",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = details.description,
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            RatingChart(
-                ratings = details.ratings,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Может понравиться",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    textDecoration = TextDecoration.Underline,
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .padding(bottom = 12.dp)
-                    .clickable {
-                        val recommendedIds = state.details?.recommendedAnime?.map { it.id } ?: emptyList()
-                        navigateToRecommended(recommendedIds)
-                    }
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        shape = MaterialTheme.shapes.small
-                    )
-            )
-
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(details.recommendedAnime) { animeItem ->
-                    AnimeCard(
-                        data = animeItem,
-                        modifier = Modifier.width(200.dp),
-                        navigateToDetails = navigateToDetails,
-                    )
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        when {
+            state.isLoading -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
                 }
             }
-        }
 
+            state.error != null -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = state.error,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    Button(
+                        onClick = onRetry,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text("Повторить")
+                    }
+                }
+            }
+
+            state.details != null -> {
+                AnimeDetailContent(
+                    details = state.details,
+                    navigateToDetails = navigateToDetails,
+                    navigateToRecommended = navigateToRecommended
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun FlexBoxGenreLayout(
+private fun AnimeDetailContent(
+    details: AnimeDetails,
+    navigateToDetails: (Int) -> Unit,
+    navigateToRecommended: (List<Int>) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+    ) {
+        Image(
+            painter = painterResource(id = details.imageRes),
+            contentDescription = details.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .clip(RoundedCornerShape(12.dp))
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = details.title,
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            RatingInfo(rating = details.rating)
+            Spacer(modifier = Modifier.width(16.dp))
+            YearInfo(year = details.year)
+            Spacer(modifier = Modifier.width(16.dp))
+            EpisodesInfo(episodes = details.episodes)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Жанры:",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        FlexBoxGenreLayout(
+            genres = details.genres,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Описание:",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = details.description,
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        RatingChart(
+            ratings = details.ratings,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Может понравиться",
+            style = MaterialTheme.typography.titleLarge.copy(
+                textDecoration = TextDecoration.Underline,
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier
+                .padding(bottom = 12.dp)
+                .clickable {
+                    navigateToRecommended(details.recommendedAnime.map { it.id })
+                }
+                .background(
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    shape = MaterialTheme.shapes.small
+                )
+        )
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(details.recommendedAnime) { animeItem ->
+                AnimeCard(
+                    data = animeItem,
+                    modifier = Modifier.width(200.dp),
+                    navigateToDetails = navigateToDetails
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FlexBoxGenreLayout(
     genres: List<AnimeGenre>,
     modifier: Modifier = Modifier,
     context: Context = LocalContext.current
@@ -225,8 +267,7 @@ private fun RatingInfo(rating: Float) {
             imageVector = Icons.Default.Star,
             contentDescription = "Рейтинг",
             tint = Color(0xFFFFC107),
-            modifier = Modifier.size(20.dp)
-        )
+            modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = "%.1f".format(rating),
@@ -267,58 +308,3 @@ private fun EpisodesInfo(episodes: Int) {
         )
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun AnimeDetailScreenPreview() {
-//    MaterialTheme {
-//        Surface {
-//            AnimeDetailScreen(
-//                anime = AnimeDetails(
-//                    imageRes = R.drawable.sololeveling1,
-//                    title = "Поднятие уровня в одиночку",
-//                    genres = listOf(
-//                        AnimeGenre("Иссекай", Color(0xFFE91E63)),
-//                        AnimeGenre("Сёнен", Color(0xFF3F51B5)),
-//                        AnimeGenre("Фэнтези", Color(0xFF4CAF50)),
-//                        AnimeGenre("Приключения", Color(0xFFFF9800)),
-//                        AnimeGenre("Экшен", Color(0xFFF44336))
-//                    ),
-//                    description = "Сон Джин-У - самый слабый охотник в мире. " +
-//                            "Он сражается с монстрами, рискуя жизнью, но после " +
-//                            "загадочных событий получает уникальную способность..." +
-//                            "Сон Джин-У - самый слабый охотник в мире. " +
-//                            "Он сражается с монстрами, рискуя жизнью, но после " +
-//                            "загадочных событий получает уникальную способность...",
-//                    rating = 9.8f,
-//                    year = 2024,
-//                    episodes = 12,
-//                    ratings = listOf(
-//                        RatingData(1, 100),
-//                        RatingData(2, 50),
-//                        RatingData(3, 200),
-//                        RatingData(4, 150),
-//                        RatingData(5, 300),
-//                        RatingData(6, 250),
-//                        RatingData(7, 400),
-//                        RatingData(8, 350),
-//                        RatingData(9, 450),
-//                        RatingData(10, 500)
-//                    ),
-//                    recommendedAnime = listOf(
-//                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//                        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//                    )
-//                )
-//            )
-//        }
-//    }
-//}

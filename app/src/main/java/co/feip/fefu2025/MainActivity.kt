@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier,
                         onQueryChange = viewModel::onQueryChange,
                         navigateTODetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
+                        onRetry = { viewModel.loadAnime() }
                     )
                 }
 
@@ -57,7 +58,8 @@ class MainActivity : ComponentActivity() {
                         state = viewModel.state,
                         modifier = Modifier,
                         navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
-                        navigateToRecommended = { ids -> navController.navigate(Destination.RecommendedAnime(ids)) }
+                        navigateToRecommended = { ids -> navController.navigate(Destination.RecommendedAnime(ids)) },
+                        onRetry = { viewModel.loadAnimeDetails() }
                     )
                 }
 
@@ -73,7 +75,8 @@ class MainActivity : ComponentActivity() {
                     RecommendedAnimeScreen(
                         state = viewModel.state,
                         navController = navController,
-                        navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) }
+                        navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
+                        onRetry = { viewModel.loadRecommendedAnime() }
                     )
                 }
             }

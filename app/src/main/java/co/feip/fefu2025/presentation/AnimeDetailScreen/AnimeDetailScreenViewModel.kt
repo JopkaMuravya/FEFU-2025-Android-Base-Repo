@@ -11,18 +11,32 @@ import kotlinx.coroutines.launch
 class AnimeDetailScreenViewModel(
     val id: Int
 ): ViewModel() {
-    //TODO передать id
-    val animeDetailsUseCase = GetAnimeDetailsUseCase()
+    private val animeDetailsUseCase = GetAnimeDetailsUseCase()
     var state by mutableStateOf(AnimeDetailsState())
+
     init {
-        getAnimeDetails()
+        loadAnimeDetails()
     }
-    private fun getAnimeDetails(){
+
+    fun loadAnimeDetails() {
+        state = state.copy(
+            isLoading = true,
+            error = null
+        )
+
         viewModelScope.launch {
-           val details = animeDetailsUseCase(id)
-            state = state.copy(details = details)
+            try {
+                val details = animeDetailsUseCase(id)
+                state = state.copy(
+                    details = details,
+                    isLoading = false
+                )
+            } catch (e: Exception) {
+                state = state.copy(
+                    isLoading = false,
+                    error = e.message ?: "Неизвестная ошибка"
+                )
+            }
         }
     }
-
 }
-
