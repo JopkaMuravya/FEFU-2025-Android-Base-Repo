@@ -42,4 +42,8 @@ class MainAnimeScreenViewModel: ViewModel() {
     fun onQueryChange(query: String) {
         state = state.copy(searchQuery = query)
     }
+
+    fun clearSearch() {
+        state = state.copy(searchQuery = "")
+    }
 }

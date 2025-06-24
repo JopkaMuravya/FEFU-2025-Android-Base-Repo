@@ -1,5 +1,6 @@
 package co.feip.fefu2025.presentation.MainAnimeScreen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,7 @@ fun MainAnimeScreen(
     state: MainAnimeScreenState,
     modifier: Modifier = Modifier,
     navigateTODetails: (Int) -> Unit,
+    navigateToSearch: () -> Unit,
     onQueryChange: (String) -> Unit,
     onRetry: () -> Unit
 ) {
@@ -95,7 +97,12 @@ fun MainAnimeScreen(
                                 unfocusedIndicatorColor = Color.Transparent
                             ),
                             shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    navigateToSearch()
+                                },
+                            enabled = false,
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyMedium
                         )

@@ -76,4 +76,12 @@ class AnimeRepositoryImpl : AnimeRepository {
             data.id == id
         }
     }
+
+    override suspend fun searchAnime(query: String): List<AnimeCard> {
+        delay(1000)
+        if (query.isBlank()) return emptyList()
+        return animeList.filter {
+            it.title.contains(query, ignoreCase = true)
+        }
+    }
 }
