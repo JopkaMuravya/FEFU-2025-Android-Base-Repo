@@ -1,7 +1,9 @@
 package co.feip.fefu2025.presentation.MainAnimeScreen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -16,6 +18,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +42,9 @@ fun MainAnimeScreen(
     state: MainAnimeScreenState,
     modifier: Modifier = Modifier,
     navigateTODetails: (Int) -> Unit,
-    onQueryChange: (String) -> Unit
+    navigateToSearch: () -> Unit,
+    onQueryChange: (String) -> Unit,
+    onRetry: () -> Unit
 ) {
     val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
 
@@ -91,7 +97,12 @@ fun MainAnimeScreen(
                                 unfocusedIndicatorColor = Color.Transparent
                             ),
                             shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    navigateToSearch()
+                                },
+                            enabled = false,
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyMedium
                         )
@@ -101,19 +112,46 @@ fun MainAnimeScreen(
         },
         modifier = modifier
     ) { innerPadding ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = innerPadding,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val anime = state.animeList
-            items(anime) { anime ->
-                AnimeCard(
-                    data = anime,
-                    modifier = Modifier
-                        .padding(8.dp),
-                    navigateToDetails = navigateTODetails ,
-                )
+        Box(modifier = Modifier.fillMaxSize()) {
+            when {
+                state.isLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                state.error != null -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = state.error,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                        Button(onClick = onRetry) {
+                            Text("Повторить")
+                        }
+                    }
+                }
+                else -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = innerPadding,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(state.animeList) { anime ->
+                            AnimeCard(
+                                data = anime,
+                                modifier = Modifier.padding(8.dp),
+                                navigateToDetails = navigateTODetails,
+                            )
+                        }
+                    }
+                }
             }
         }
     }

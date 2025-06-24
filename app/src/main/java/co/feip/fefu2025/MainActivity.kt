@@ -24,6 +24,8 @@ import co.feip.fefu2025.presentation.MainAnimeScreen.MainAnimeScreen
 import co.feip.fefu2025.presentation.MainAnimeScreen.MainAnimeScreenViewModel
 import co.feip.fefu2025.presentation.RecommendedAnimeScreen.RecommendedAnimeScreen
 import co.feip.fefu2025.presentation.RecommendedAnimeScreen.RecommendedAnimeScreenViewModel
+import co.feip.fefu2025.presentation.SearchScreen.SearchScreen
+import co.feip.fefu2025.presentation.SearchScreen.SearchViewModel
 import kotlinx.serialization.Serializable
 
 class MainActivity : ComponentActivity() {
@@ -46,6 +48,10 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier,
                         onQueryChange = viewModel::onQueryChange,
                         navigateTODetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
+                        navigateToSearch = {
+                            navController.navigate(Destination.SearchScreen)
+                        },
+                        onRetry = { viewModel.loadAnime() }
                     )
                 }
 
@@ -57,7 +63,8 @@ class MainActivity : ComponentActivity() {
                         state = viewModel.state,
                         modifier = Modifier,
                         navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
-                        navigateToRecommended = { ids -> navController.navigate(Destination.RecommendedAnime(ids)) }
+                        navigateToRecommended = { ids -> navController.navigate(Destination.RecommendedAnime(ids)) },
+                        onRetry = { viewModel.loadAnimeDetails() }
                     )
                 }
 
@@ -73,6 +80,25 @@ class MainActivity : ComponentActivity() {
                     RecommendedAnimeScreen(
                         state = viewModel.state,
                         navController = navController,
+                        navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
+                        onRetry = { viewModel.loadRecommendedAnime() }
+                    )
+                }
+
+                composable<Destination.SearchScreen> {
+                    val viewModel: SearchViewModel = viewModel()
+                    val mainViewModel: MainAnimeScreenViewModel = viewModel()
+
+                    SearchScreen(
+                        searchQuery = mainViewModel.state.searchQuery,
+                        onSearchQueryChange = { query ->
+                            mainViewModel.onQueryChange(query)
+                            viewModel.searchAnime(query)
+                        },
+                        searchResults = viewModel.state.searchResults,
+                        isLoading = viewModel.state.isLoading,
+                        error = viewModel.state.error,
+                        onBackClick = { navController.popBackStack() },
                         navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) }
                     )
                 }
@@ -118,4 +144,7 @@ sealed class Destination {
 
     @Serializable
     data class RecommendedAnime(val animeIds: List<Int>) : Destination()
+
+    @Serializable
+    data object SearchScreen : Destination()
 }

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -18,7 +19,8 @@ import co.feip.fefu2025.presentation.common.AnimeCard
 fun RecommendedAnimeScreen(
     state: RecommendedAnimeScreenState,
     navController: NavController,
-    navigateToDetails: (Int) -> Unit
+    navigateToDetails: (Int) -> Unit,
+    onRetry: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -32,17 +34,56 @@ fun RecommendedAnimeScreen(
             )
         }
     ) { padding ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = padding,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(state.animeList) { anime ->
-                AnimeCard(
-                    data = anime,
-                    modifier = Modifier.padding(8.dp),
-                    navigateToDetails = navigateToDetails
-                )
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)) {
+            when {
+                state.isLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+
+                state.error != null -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = state.error,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                        Button(onClick = onRetry) {
+                            Text("Повторить")
+                        }
+                    }
+                }
+
+                state.animeList.isEmpty() -> {
+                    Text(
+                        text = "Нет рекомендуемых аниме",
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+
+                else -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(state.animeList) { anime ->
+                            AnimeCard(
+                                data = anime,
+                                modifier = Modifier.padding(8.dp),
+                                navigateToDetails = navigateToDetails
+                            )
+                        }
+                    }
+                }
             }
         }
     }
