@@ -1,11 +1,9 @@
 package co.feip.fefu2025.presentation.SearchScreen
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -15,6 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import co.feip.fefu2025.domain.models.AnimeCard
 import co.feip.fefu2025.presentation.common.AnimeCard
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,10 +26,29 @@ fun SearchScreen(
     searchResults: List<AnimeCard>,
     isLoading: Boolean,
     error: String?,
+    isLoadingNextPage: Boolean,
+    paginationError: String?,
+    onPaginate: () -> Unit,
+    onRetryPagination: () -> Unit,
     onBackClick: () -> Unit,
     navigateToDetails: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    val gridState = rememberLazyGridState()
+
+    LaunchedEffect(gridState.layoutInfo, searchResults) {
+        val visibleItemsInfo = gridState.layoutInfo.visibleItemsInfo
+        if (visibleItemsInfo.isNotEmpty()) {
+            val lastVisibleItemIndex = visibleItemsInfo.last().index
+            val totalItemCount = gridState.layoutInfo.totalItemsCount
+
+            if (lastVisibleItemIndex >= totalItemCount - 5 && !isLoadingNextPage && !isLoading) {
+                onPaginate()
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -92,6 +113,7 @@ fun SearchScreen(
                 else -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
+                        state = gridState,
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(searchResults) { anime ->
@@ -100,6 +122,23 @@ fun SearchScreen(
                                 modifier = Modifier.padding(8.dp),
                                 navigateToDetails = navigateToDetails
                             )
+                        }
+
+                        if (isLoadingNextPage) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                        }
+
+                        if (paginationError != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                                    Text(text = paginationError, color = MaterialTheme.colorScheme.error)
+                                    Button(onClick = onRetryPagination) { Text("Повторить") }
+                                }
+                            }
                         }
                     }
                 }

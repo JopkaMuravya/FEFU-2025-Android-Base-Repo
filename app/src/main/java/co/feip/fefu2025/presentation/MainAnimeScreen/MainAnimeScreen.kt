@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +36,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import co.feip.fefu2025.presentation.common.AnimeCard
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.LaunchedEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,9 +48,23 @@ fun MainAnimeScreen(
     navigateTODetails: (Int) -> Unit,
     navigateToSearch: () -> Unit,
     onQueryChange: (String) -> Unit,
+    onPaginate: () -> Unit,
     onRetry: () -> Unit
 ) {
     val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
+    val gridState = rememberLazyGridState()
+
+    LaunchedEffect(gridState.layoutInfo) {
+        val visibleItemsInfo = gridState.layoutInfo.visibleItemsInfo
+        if (visibleItemsInfo.isNotEmpty()) {
+            val lastVisibleItemIndex = visibleItemsInfo.last().index
+            val totalItemCount = gridState.layoutInfo.totalItemsCount
+
+            if (lastVisibleItemIndex >= totalItemCount - 5 && !state.isLoadingNextPage && !state.endReached) {
+                onPaginate()
+            }
+        }
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp),
@@ -140,6 +158,7 @@ fun MainAnimeScreen(
                 else -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
+                        state = gridState,
                         contentPadding = innerPadding,
                         modifier = Modifier.fillMaxSize()
                     ) {
@@ -150,30 +169,43 @@ fun MainAnimeScreen(
                                 navigateToDetails = navigateTODetails,
                             )
                         }
+
+                        if (state.isLoadingNextPage) {
+                            item(
+                                span = { GridItemSpan(maxLineSpan) }
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                        }
+
+                        if (state.paginationError != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = state.paginationError,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(onClick = onRetry) {
+                                        Text("Повторить")
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun MainAnimeScreenPreview() {
-//    val sampleAnimeList = listOf(
-//        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//        AnimeCardData(imageRes = R.drawable.sololeveling1, title = "Поднятие уровня в одиночку", genres = listOf(AnimeGenre("Иссекай", Color(0xFFE91E63)), AnimeGenre("Сёнен", Color(0xFF3F51B5)), AnimeGenre("Фэнтези", Color(0xFF4CAF50))), rating = 9.8f, episodes = 12),
-//    )
-//
-//    MaterialTheme {
-//        MainAnimeScreen(animeList = sampleAnimeList)
-//    }
-//}

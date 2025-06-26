@@ -13,6 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import co.feip.fefu2025.presentation.common.AnimeCard
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.LaunchedEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,8 +23,24 @@ fun RecommendedAnimeScreen(
     state: RecommendedAnimeScreenState,
     navController: NavController,
     navigateToDetails: (Int) -> Unit,
+    onPaginate: () -> Unit,
     onRetry: () -> Unit
 ) {
+
+    val gridState = rememberLazyGridState()
+
+    LaunchedEffect(gridState.layoutInfo, state.visibleAnimeList) {
+        val visibleItemsInfo = gridState.layoutInfo.visibleItemsInfo
+        if (visibleItemsInfo.isNotEmpty()) {
+            val lastVisibleItemIndex = visibleItemsInfo.last().index
+            val totalItemCount = gridState.layoutInfo.totalItemsCount
+
+            if (lastVisibleItemIndex >= totalItemCount - 5 && !state.isLoadingNextPage && !state.endReached) {
+                onPaginate()
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -63,7 +82,7 @@ fun RecommendedAnimeScreen(
                     }
                 }
 
-                state.animeList.isEmpty() -> {
+                state.visibleAnimeList.isEmpty() -> {
                     Text(
                         text = "Нет рекомендуемых аниме",
                         modifier = Modifier.align(Alignment.Center)
@@ -73,14 +92,26 @@ fun RecommendedAnimeScreen(
                 else -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
+                        state = gridState,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items(state.animeList) { anime ->
+                        items(state.visibleAnimeList) { anime ->
                             AnimeCard(
                                 data = anime,
                                 modifier = Modifier.padding(8.dp),
                                 navigateToDetails = navigateToDetails
                             )
+                        }
+
+                        if (state.isLoadingNextPage) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
                         }
                     }
                 }

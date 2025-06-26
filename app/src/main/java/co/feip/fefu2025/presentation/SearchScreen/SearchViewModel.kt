@@ -17,40 +17,63 @@ class SearchViewModel : ViewModel() {
 
     private var searchJob: Job? = null
 
-    fun searchAnime(query: String) {
+    companion object {
+        private const val PAGE_SIZE = 20
+    }
+
+    fun onQueryChanged(query: String) {
+        if (state.currentQuery == query) return
+
         searchJob?.cancel()
 
+        state = state.copy(currentQuery = query)
+
         if (query.isBlank()) {
-            state = state.copy(
-                searchResults = emptyList(),
-                isLoading = false,
-                error = null
-            )
+            state = SearchState(currentQuery = "")
             return
         }
 
-        state = state.copy(isLoading = true, error = null)
-
         searchJob = viewModelScope.launch {
-            // Добавляем задержку для дебаунса
             delay(500)
 
-            try {
-                val results = searchUseCase(query)
-                state = state.copy(
-                    searchResults = results,
-                    isLoading = false
-                )
-            } catch (e: Exception) {
-                state = state.copy(
-                    isLoading = false,
-                    error = e.message ?: "Ошибка поиска"
-                )
-            }
+            state = SearchState(currentQuery = query)
+            loadNextPage()
         }
     }
 
-    fun clearSearch() {
-        state = SearchState()
+    fun loadNextPage() {
+        if (state.isLoading || state.isLoadingNextPage || state.endReached) {
+            return
+        }
+
+        viewModelScope.launch {
+            state = if (state.currentPage == 1) {
+                state.copy(isLoading = true, error = null)
+            } else {
+                state.copy(isLoadingNextPage = true, paginationError = null)
+            }
+
+            try {
+                val results = searchUseCase(
+                    query = state.currentQuery,
+                    page = state.currentPage,
+                    limit = PAGE_SIZE
+                )
+                state = state.copy(
+                    searchResults = state.searchResults + results,
+                    currentPage = state.currentPage + 1,
+                    isLoading = false,
+                    isLoadingNextPage = false,
+                    endReached = results.isEmpty()
+                )
+            } catch (e: Exception) {
+                val errorMessage = e.message ?: "Ошибка поиска"
+                if (state.currentPage == 1) {
+                    state = state.copy(isLoading = false, error = errorMessage)
+                } else {
+                    state = state.copy(isLoadingNextPage = false, paginationError = errorMessage)
+                }
+            }
+        }
     }
 }

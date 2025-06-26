@@ -51,7 +51,8 @@ class MainActivity : ComponentActivity() {
                         navigateToSearch = {
                             navController.navigate(Destination.SearchScreen)
                         },
-                        onRetry = { viewModel.loadAnime() }
+                        onPaginate = viewModel::loadNextItems,
+                        onRetry = viewModel::retry
                     )
                 }
 
@@ -63,7 +64,7 @@ class MainActivity : ComponentActivity() {
                         state = viewModel.state,
                         modifier = Modifier,
                         navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
-                        navigateToRecommended = { ids -> navController.navigate(Destination.RecommendedAnime(ids)) },
+                        navigateToRecommended = { id -> navController.navigate(Destination.RecommendedAnime(id)) },
                         onRetry = { viewModel.loadAnimeDetails() }
                     )
                 }
@@ -73,7 +74,7 @@ class MainActivity : ComponentActivity() {
                     val viewModel: RecommendedAnimeScreenViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                return RecommendedAnimeScreenViewModel(args.animeIds) as T
+                                return RecommendedAnimeScreenViewModel(args.animeId) as T
                             }
                         }
                     )
@@ -81,25 +82,31 @@ class MainActivity : ComponentActivity() {
                         state = viewModel.state,
                         navController = navController,
                         navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
-                        onRetry = { viewModel.loadRecommendedAnime() }
+                        onRetry = viewModel::onRetry,
+                        onPaginate = viewModel::loadNextPage
                     )
                 }
 
                 composable<Destination.SearchScreen> {
                     val viewModel: SearchViewModel = viewModel()
                     val mainViewModel: MainAnimeScreenViewModel = viewModel()
+                    val searchQuery = mainViewModel.state.searchQuery
 
                     SearchScreen(
-                        searchQuery = mainViewModel.state.searchQuery,
+                        searchQuery = searchQuery,
                         onSearchQueryChange = { query ->
                             mainViewModel.onQueryChange(query)
-                            viewModel.searchAnime(query)
+                            viewModel.onQueryChanged(query)
                         },
                         searchResults = viewModel.state.searchResults,
                         isLoading = viewModel.state.isLoading,
                         error = viewModel.state.error,
                         onBackClick = { navController.popBackStack() },
-                        navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) }
+                        navigateToDetails = { id -> navController.navigate(Destination.AnimeDetails(id)) },
+                        isLoadingNextPage = viewModel.state.isLoadingNextPage,
+                        paginationError = viewModel.state.paginationError,
+                        onPaginate = viewModel::loadNextPage,
+                        onRetryPagination = viewModel::loadNextPage
                     )
                 }
             }
@@ -143,7 +150,7 @@ sealed class Destination {
     data object MainScreen : Destination()
 
     @Serializable
-    data class RecommendedAnime(val animeIds: List<Int>) : Destination()
+    data class RecommendedAnime(val animeId: Int) : Destination()
 
     @Serializable
     data object SearchScreen : Destination()
