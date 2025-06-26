@@ -1,5 +1,8 @@
 package co.feip.fefu2025.data.repository
 
+import android.content.Context
+import co.feip.fefu2025.data.local.AppDatabase
+import co.feip.fefu2025.data.local.FavoriteAnimeEntity
 import co.feip.fefu2025.data.remote.RetrofitClient
 import co.feip.fefu2025.data.remote.toAnimeCard
 import co.feip.fefu2025.data.remote.toAnimeGenre
@@ -7,12 +10,14 @@ import co.feip.fefu2025.domain.models.AnimeCard
 import co.feip.fefu2025.domain.models.AnimeDetails
 import co.feip.fefu2025.domain.models.RatingData
 import co.feip.fefu2025.domain.repository.AnimeRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-class AnimeRepositoryImpl : AnimeRepository {
+class AnimeRepositoryImpl(context: Context) : AnimeRepository {
 
     private val apiService = RetrofitClient.api
+    private val dao = AppDatabase.getDatabase(context).favoriteAnimeDao()
 
     override suspend fun getAnimeCards(page: Int, limit: Int): List<AnimeCard> {
         val response = apiService.getTopAnime(page = page, limit = limit)
@@ -72,5 +77,25 @@ class AnimeRepositoryImpl : AnimeRepository {
                 userCount = scoreDto.votes
             )
         }
+    }
+
+    override fun getFavorites(): Flow<List<FavoriteAnimeEntity>> {
+        return dao.getAllFavorites()
+    }
+
+    override fun isFavorite(animeId: Int): Flow<Boolean> {
+        return dao.isFavorite(animeId)
+    }
+
+    override suspend fun addFavorite(anime: FavoriteAnimeEntity) {
+        dao.addFavorite(anime)
+    }
+
+    override suspend fun removeFavorite(animeId: Int) {
+        dao.removeFavorite(animeId)
+    }
+
+    override suspend fun getFavoriteById(animeId: Int): FavoriteAnimeEntity? {
+        return dao.getFavoriteById(animeId)
     }
 }

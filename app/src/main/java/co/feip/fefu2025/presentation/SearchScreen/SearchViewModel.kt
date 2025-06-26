@@ -1,17 +1,21 @@
 package co.feip.fefu2025.presentation.SearchScreen
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import co.feip.fefu2025.MyApplication
+import co.feip.fefu2025.domain.repository.AnimeRepository
 import co.feip.fefu2025.domain.use_cases.SearchAnimeUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class SearchViewModel : ViewModel() {
-    private val searchUseCase = SearchAnimeUseCase()
+class SearchViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository: AnimeRepository = (application as MyApplication).repository
+    private val searchUseCase = SearchAnimeUseCase(repository)
     var state by mutableStateOf(SearchState())
         private set
 
@@ -22,10 +26,9 @@ class SearchViewModel : ViewModel() {
     }
 
     fun onQueryChanged(query: String) {
-        if (state.currentQuery == query) return
+        if (state.currentQuery == query && query.isNotBlank()) return
 
         searchJob?.cancel()
-
         state = state.copy(currentQuery = query)
 
         if (query.isBlank()) {
@@ -35,7 +38,6 @@ class SearchViewModel : ViewModel() {
 
         searchJob = viewModelScope.launch {
             delay(500)
-
             state = SearchState(currentQuery = query)
             loadNextPage()
         }
@@ -45,14 +47,12 @@ class SearchViewModel : ViewModel() {
         if (state.isLoading || state.isLoadingNextPage || state.endReached) {
             return
         }
-
         viewModelScope.launch {
             state = if (state.currentPage == 1) {
                 state.copy(isLoading = true, error = null)
             } else {
                 state.copy(isLoadingNextPage = true, paginationError = null)
             }
-
             try {
                 val results = searchUseCase(
                     query = state.currentQuery,
