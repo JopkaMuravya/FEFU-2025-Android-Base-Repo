@@ -22,9 +22,11 @@ class AnimeRepositoryImpl : AnimeRepository {
     override suspend fun getAnimeDetailsById(id: Int): AnimeDetails? = coroutineScope {
         val detailsJob = async { apiService.getAnimeDetails(id) }
         val recommendationsJob = async { apiService.getAnimeRecommendations(id) }
+        val statisticsJob = async { getAnimeStatisticsById(id) }
 
         val detailsResponse = detailsJob.await().data
         val recommendationsResponse = recommendationsJob.await().data
+        val statisticsData = statisticsJob.await()
 
         return@coroutineScope AnimeDetails(
             id = detailsResponse.malId,
@@ -35,7 +37,7 @@ class AnimeRepositoryImpl : AnimeRepository {
             rating = detailsResponse.score ?: 0f,
             year = detailsResponse.year ?: 2024,
             episodes = detailsResponse.episodes ?: 0,
-            ratings = (1..10).map { RatingData(it, (10..500).random()) },
+            ratings = statisticsData,
             recommendedAnime = recommendationsResponse.take(10).map { it.entry.toAnimeCard() }
         )
     }
@@ -59,6 +61,16 @@ class AnimeRepositoryImpl : AnimeRepository {
         val response = apiService.getAnimeRecommendations(id = animeId)
         return response.data.map { recommendationDto ->
             recommendationDto.entry.toAnimeCard()
+        }
+    }
+
+    override suspend fun getAnimeStatisticsById(id: Int): List<RatingData> {
+        val response = apiService.getAnimeStatistics(id)
+        return response.data.scores.map { scoreDto ->
+            RatingData(
+                rating = scoreDto.score,
+                userCount = scoreDto.votes
+            )
         }
     }
 }

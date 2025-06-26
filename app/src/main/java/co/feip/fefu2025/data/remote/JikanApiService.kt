@@ -3,6 +3,7 @@ package co.feip.fefu2025.data.remote
 import co.feip.fefu2025.data.remote.dto.JikanAnimeDto
 import co.feip.fefu2025.data.remote.dto.JikanRecommendationDto
 import co.feip.fefu2025.data.remote.dto.JikanResponse
+import co.feip.fefu2025.data.remote.dto.JikanStatisticsDto
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -27,4 +28,7 @@ interface JikanApiService {
 
     @GET("anime/{id}/recommendations")
     suspend fun getAnimeRecommendations(@Path("id") id: Int): JikanResponse<List<JikanRecommendationDto>>
+
+    @GET("anime/{id}/statistics")
+    suspend fun getAnimeStatistics(@Path("id") id: Int): JikanResponse<JikanStatisticsDto>
 }

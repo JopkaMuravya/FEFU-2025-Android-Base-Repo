@@ -45,3 +45,15 @@ data class JikanGenreDto(
 data class JikanRecommendationDto(
     val entry: JikanAnimeDto
 )
+
+@Serializable
+data class JikanStatisticsDto(
+    val scores: List<JikanScoreDto> = emptyList()
+)
+
+@Serializable
+data class JikanScoreDto(
+    val score: Int,
+    val votes: Int,
+    val percentage: Float
+)
