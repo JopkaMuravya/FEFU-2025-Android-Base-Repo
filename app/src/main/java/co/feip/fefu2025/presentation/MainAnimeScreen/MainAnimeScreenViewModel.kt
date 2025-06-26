@@ -13,30 +13,52 @@ class MainAnimeScreenViewModel: ViewModel() {
     var state by mutableStateOf(MainAnimeScreenState())
         private set
 
-    init {
-        loadAnime()
+    companion object {
+        private const val PAGE_SIZE = 20
     }
 
-    fun loadAnime() {
-        state = state.copy(
-            isLoading = true,
-            error = null
-        )
+    init {
+        loadNextItems()
+    }
+
+    fun loadNextItems() {
+        if (state.isLoadingNextPage || state.endReached || state.isLoading) {
+            return
+        }
 
         viewModelScope.launch {
+            state = state.copy(paginationError = null)
+            state = if (state.currentPage == 1) {
+                state.copy(isLoading = true, error = null)
+            } else {
+                state.copy(isLoadingNextPage = true)
+            }
+
             try {
-                val anime = getAnimeUseCase()
+                val newAnime = getAnimeUseCase(
+                    page = state.currentPage,
+                    limit = PAGE_SIZE
+                )
                 state = state.copy(
-                    animeList = anime,
-                    isLoading = false
+                    animeList = state.animeList + newAnime,
+                    currentPage = state.currentPage + 1,
+                    isLoading = false,
+                    isLoadingNextPage = false,
+                    endReached = newAnime.isEmpty()
                 )
             } catch (e: Exception) {
-                state = state.copy(
-                    isLoading = false,
-                    error = e.message ?: "Неизвестная ошибка"
-                )
+                val errorMessage = e.message ?: "Неизвестная ошибка"
+                if (state.currentPage == 1) {
+                    state = state.copy(isLoading = false, error = errorMessage)
+                } else {
+                    state = state.copy(isLoadingNextPage = false, paginationError = errorMessage)
+                }
             }
         }
+    }
+
+    fun retry() {
+        loadNextItems()
     }
 
     fun onQueryChange(query: String) {

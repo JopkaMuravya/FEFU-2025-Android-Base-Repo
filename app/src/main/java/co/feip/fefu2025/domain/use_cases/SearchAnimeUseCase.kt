@@ -5,7 +5,11 @@ import co.feip.fefu2025.domain.models.AnimeCard
 
 class SearchAnimeUseCase {
     private val repository = AnimeRepositoryImpl()
-    suspend operator fun invoke(query: String): List<AnimeCard> {
-        return repository.searchAnime(query)
+    suspend operator fun invoke(
+        query: String,
+        page: Int,
+        limit: Int
+    ): List<AnimeCard> {
+        return repository.searchAnime(query, page = page, limit = limit)
     }
 }

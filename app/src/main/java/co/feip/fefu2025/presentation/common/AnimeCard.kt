@@ -1,6 +1,5 @@
 package co.feip.fefu2025.presentation.common
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,8 +33,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.feip.fefu2025.R
 import co.feip.fefu2025.domain.models.AnimeCard
 import co.feip.fefu2025.domain.models.AnimeGenre
+import coil.compose.AsyncImage
 
 
 @Composable
@@ -46,7 +47,8 @@ fun AnimeCard(
 ) {
     Card(
         modifier = modifier
-            .width(200.dp).clickable { navigateToDetails(data.id) },
+            .width(200.dp).clickable { navigateToDetails(data.id) }
+            .height(300.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -62,11 +64,13 @@ fun AnimeCard(
                     .height(150.dp)
                     .clip(RoundedCornerShape(8.dp))
             ) {
-                Image(
-                    painter = painterResource(id = data.imageRes),
+                AsyncImage(
+                    model = data.imageUrl,
                     contentDescription = data.title,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    placeholder = painterResource(id = R.drawable.placeholder_image),
+                    error = painterResource(id = R.drawable.error_image)
                 )
             }
 
@@ -82,12 +86,19 @@ fun AnimeCard(
                     .height(50.dp)
             )
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.padding(top = 6.dp)
+            Box(
+                modifier = Modifier
+                    .padding(top = 6.dp)
+                    .height(32.dp)
+                    .fillMaxWidth()
             ) {
-                data.genres.forEach { genre ->
-                    GenreChip(genre = genre)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    data.genres.take(3).forEach { genre ->
+                        GenreChip(genre = genre)
+                    }
                 }
             }
 
@@ -138,7 +149,9 @@ private fun GenreChip(
             text = genre.name,
             color = Color(genre.color),
             fontSize = 10.sp,
-            style = MaterialTheme.typography.labelSmall
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -166,24 +179,3 @@ private fun RatingBar(
         )
     }
 }
-
-//@Preview
-//@Composable
-//fun AnimeCardPreview() {
-//    MaterialTheme {
-//        AnimeCard(
-//            data = AnimeCardData(
-//                imageRes = R.drawable.sololeveling1,
-//                title = "Поднятие уровня в одиночку",
-//                genres = listOf(
-//                    AnimeGenre("Иссекай", Color(0xFFE91E63)),
-//                    AnimeGenre("Сёнен", Color(0xFF3F51B5)),
-//                    AnimeGenre("Фэнтези", Color(0xFF4CAF50))
-//                ),
-//                rating = 9.8f,
-//                episodes = 12
-//            ),
-//            modifier = Modifier.padding(10.dp)
-//        )
-//    }
-//}

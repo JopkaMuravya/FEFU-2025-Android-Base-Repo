@@ -5,7 +5,6 @@ import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,18 +30,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import co.feip.fefu2025.R
 import co.feip.fefu2025.domain.models.AnimeDetails
 import co.feip.fefu2025.domain.models.AnimeGenre
 import co.feip.fefu2025.presentation.AnimeDetailScreen.components.RatingChart
 import co.feip.fefu2025.presentation.common.AnimeCard
 import co.feip.fefu2025.presentation.common.MyFlexBoxLayout
+import coil.compose.AsyncImage
 
 @Composable
 fun AnimeDetailScreen(
     state: AnimeDetailsState,
     modifier: Modifier = Modifier,
     navigateToDetails: (Int) -> Unit,
-    navigateToRecommended: (List<Int>) -> Unit,
+    navigateToRecommended: (Int) -> Unit,
     onRetry: () -> Unit
 ) {
     Box(
@@ -101,21 +102,23 @@ fun AnimeDetailScreen(
 private fun AnimeDetailContent(
     details: AnimeDetails,
     navigateToDetails: (Int) -> Unit,
-    navigateToRecommended: (List<Int>) -> Unit
+    navigateToRecommended: (Int) -> Unit
 ) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        Image(
-            painter = painterResource(id = details.imageRes),
+        AsyncImage(
+            model = details.imageUrl,
             contentDescription = details.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(12.dp)),
+            placeholder = painterResource(id = R.drawable.placeholder_image),
+            error = painterResource(id = R.drawable.error_image)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -192,7 +195,7 @@ private fun AnimeDetailContent(
             modifier = Modifier
                 .padding(bottom = 12.dp)
                 .clickable {
-                    navigateToRecommended(details.recommendedAnime.map { it.id })
+                    navigateToRecommended(details.id)
                 }
                 .background(
                     MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
