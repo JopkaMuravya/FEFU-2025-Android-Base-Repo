@@ -1,18 +1,23 @@
 package co.feip.fefu2025.presentation.RecommendedAnimeScreen
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import co.feip.fefu2025.MyApplication
+import co.feip.fefu2025.domain.repository.AnimeRepository
 import co.feip.fefu2025.domain.use_cases.GetAllRecommendationsUseCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class RecommendedAnimeScreenViewModel(
-    private val animeId: Int,
-    private val getAllRecommendationsUseCase: GetAllRecommendationsUseCase = GetAllRecommendationsUseCase()
-) : ViewModel() {
+    application: Application,
+    private val animeId: Int
+) : AndroidViewModel(application) {
+    private val repository: AnimeRepository = (application as MyApplication).repository
+    private val getAllRecommendationsUseCase = GetAllRecommendationsUseCase(repository)
     var state by mutableStateOf(RecommendedAnimeScreenState())
         private set
 
@@ -51,15 +56,12 @@ class RecommendedAnimeScreenViewModel(
         viewModelScope.launch {
             state = state.copy(isLoadingNextPage = true)
             delay(500)
-
             val currentList = state.visibleAnimeList
             val fullList = state.fullAnimeList
-
             val nextItems = fullList.subList(
                 fromIndex = currentList.size,
                 toIndex = (currentList.size + PAGE_SIZE).coerceAtMost(fullList.size)
             )
-
             state = state.copy(
                 visibleAnimeList = currentList + nextItems,
                 isLoadingNextPage = false,

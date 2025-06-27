@@ -1,8 +1,10 @@
 package co.feip.fefu2025.domain.repository
 
+import co.feip.fefu2025.data.local.FavoriteAnimeEntity
 import co.feip.fefu2025.domain.models.AnimeCard
 import co.feip.fefu2025.domain.models.AnimeDetails
 import co.feip.fefu2025.domain.models.RatingData
+import kotlinx.coroutines.flow.Flow
 
 interface AnimeRepository {
     suspend fun getAnimeCards(
@@ -18,4 +20,10 @@ interface AnimeRepository {
     suspend fun getAnimeCardById(id: Int): AnimeCard?
     suspend fun getAllRecommendationsForId(animeId: Int): List<AnimeCard>
     suspend fun getAnimeStatisticsById(id: Int): List<RatingData>
+
+    fun getFavorites(): Flow<List<FavoriteAnimeEntity>>
+    fun isFavorite(animeId: Int): Flow<Boolean>
+    suspend fun addFavorite(anime: FavoriteAnimeEntity)
+    suspend fun removeFavorite(animeId: Int)
+    suspend fun getFavoriteById(animeId: Int): FavoriteAnimeEntity?
 }

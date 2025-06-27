@@ -1,15 +1,19 @@
 package co.feip.fefu2025.presentation.MainAnimeScreen
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import co.feip.fefu2025.MyApplication
+import co.feip.fefu2025.domain.repository.AnimeRepository
 import co.feip.fefu2025.domain.use_cases.GetAnimeUseCase
 import kotlinx.coroutines.launch
 
-class MainAnimeScreenViewModel: ViewModel() {
-    private val getAnimeUseCase = GetAnimeUseCase()
+class MainAnimeScreenViewModel(application: Application): AndroidViewModel(application) {
+    private val repository: AnimeRepository = (application as MyApplication).repository
+    private val getAnimeUseCase = GetAnimeUseCase(repository)
     var state by mutableStateOf(MainAnimeScreenState())
         private set
 
@@ -25,7 +29,6 @@ class MainAnimeScreenViewModel: ViewModel() {
         if (state.isLoadingNextPage || state.endReached || state.isLoading) {
             return
         }
-
         viewModelScope.launch {
             state = state.copy(paginationError = null)
             state = if (state.currentPage == 1) {
@@ -33,12 +36,8 @@ class MainAnimeScreenViewModel: ViewModel() {
             } else {
                 state.copy(isLoadingNextPage = true)
             }
-
             try {
-                val newAnime = getAnimeUseCase(
-                    page = state.currentPage,
-                    limit = PAGE_SIZE
-                )
+                val newAnime = getAnimeUseCase(page = state.currentPage, limit = PAGE_SIZE)
                 state = state.copy(
                     animeList = state.animeList + newAnime,
                     currentPage = state.currentPage + 1,
@@ -63,9 +62,5 @@ class MainAnimeScreenViewModel: ViewModel() {
 
     fun onQueryChange(query: String) {
         state = state.copy(searchQuery = query)
-    }
-
-    fun clearSearch() {
-        state = state.copy(searchQuery = "")
     }
 }

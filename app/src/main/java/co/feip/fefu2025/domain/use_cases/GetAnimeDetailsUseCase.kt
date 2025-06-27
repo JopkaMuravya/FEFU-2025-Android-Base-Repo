@@ -1,11 +1,10 @@
 package co.feip.fefu2025.domain.use_cases
 
-import co.feip.fefu2025.data.repository.AnimeRepositoryImpl
 import co.feip.fefu2025.domain.models.AnimeDetails
+import co.feip.fefu2025.domain.repository.AnimeRepository
 
-class GetAnimeDetailsUseCase {
-    val repositoryIml = AnimeRepositoryImpl()
+class GetAnimeDetailsUseCase(private val repository: AnimeRepository) {
     suspend operator fun invoke(id: Int): AnimeDetails? {
-        return repositoryIml.getAnimeDetailsById(id)
+        return repository.getAnimeDetailsById(id)
     }
 }
