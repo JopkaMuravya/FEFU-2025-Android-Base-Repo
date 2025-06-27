@@ -121,9 +121,21 @@ class MainActivity : ComponentActivity() {
                     val args = backStackEntry.toRoute<Destination.FavoriteDetails>()
                     val viewModel: FavoriteDetailsViewModel = viewModel(factory = ViewModelFactory(application, args.animeId))
                     val state by viewModel.state.collectAsState()
+
+                    LaunchedEffect(Unit) {
+                        viewModel.eventFlow.collect { event ->
+                            when (event) {
+                                is FavoriteDetailsViewModel.UiEvent.NavigateBack -> {
+                                    navController.popBackStack()
+                                }
+                            }
+                        }
+                    }
+
                     FavoriteDetailsScreen(
                         state = state,
-                        onBackClick = { navController.popBackStack() }
+                        onBackClick = { navController.popBackStack() },
+                        onRemoveClick = viewModel::onRemoveFromFavorites
                     )
                 }
             }

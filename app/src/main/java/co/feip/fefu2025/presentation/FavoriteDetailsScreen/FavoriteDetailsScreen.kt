@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,7 +24,8 @@ import coil.compose.AsyncImage
 @Composable
 fun FavoriteDetailsScreen(
     state: FavoriteDetailsState,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onRemoveClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -35,7 +37,21 @@ fun FavoriteDetailsScreen(
                     }
                 }
             )
+        },
+
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onRemoveClick,
+                containerColor = MaterialTheme.colorScheme.errorContainer
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Удалить из избранного",
+                    tint = MaterialTheme.colorScheme.onError
+                )
+            }
         }
+
     ) { paddingValues ->
         Box(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
