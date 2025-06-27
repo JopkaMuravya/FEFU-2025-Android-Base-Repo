@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
@@ -29,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import co.feip.fefu2025.R
@@ -39,48 +41,80 @@ import co.feip.fefu2025.presentation.common.AnimeCard
 import co.feip.fefu2025.presentation.common.MyFlexBoxLayout
 import coil.compose.AsyncImage
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimeDetailScreen(
     state: AnimeDetailsState,
     isFavorite: Boolean,
     onFavoriteClick: () -> Unit,
+    onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     navigateToDetails: (Int) -> Unit,
     navigateToRecommended: (Int) -> Unit,
     onRetry: () -> Unit
 ) {
-    Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        when {
-            state.isLoading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
-            state.error != null -> {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = state.error, color = MaterialTheme.colorScheme.error)
-                    Button(onClick = onRetry) { Text("Повторить") }
-                }
-            }
-            state.details != null -> {
-                Scaffold(
-                    floatingActionButton = {
-                        FloatingActionButton(onClick = onFavoriteClick) {
-                            Icon(
-                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "В избранное",
-                                tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = state.details?.title ?: "",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Назад"
+                        )
                     }
-                ) { paddingValues ->
+                }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onFavoriteClick) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "В избранное",
+                    tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            when {
+                state.isLoading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+                state.error != null -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = state.error,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                        Button(onClick = onRetry) { Text("Повторить") }
+                    }
+                }
+                state.details != null -> {
                     AnimeDetailContent(
                         details = state.details,
                         navigateToDetails = navigateToDetails,
-                        navigateToRecommended = navigateToRecommended,
-                        modifier = Modifier.padding(paddingValues)
+                        navigateToRecommended = navigateToRecommended
                     )
                 }
             }
@@ -92,26 +126,38 @@ fun AnimeDetailScreen(
 private fun AnimeDetailContent(
     details: AnimeDetails,
     navigateToDetails: (Int) -> Unit,
-    navigateToRecommended: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    navigateToRecommended: (Int) -> Unit
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(16.dp)
     ) {
         AsyncImage(
             model = details.imageUrl,
             contentDescription = details.title,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth().height(250.dp).clip(RoundedCornerShape(12.dp)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .clip(RoundedCornerShape(12.dp)),
             placeholder = painterResource(id = R.drawable.placeholder_image),
             error = painterResource(id = R.drawable.error_image)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = details.title, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
+        Text(
+            text = details.title,
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth()
+        )
         Spacer(modifier = Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             RatingInfo(rating = details.rating)
             Spacer(modifier = Modifier.width(16.dp))
             YearInfo(year = details.year)
@@ -119,19 +165,38 @@ private fun AnimeDetailContent(
             EpisodesInfo(episodes = details.episodes)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Жанры:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(
+            text = "Жанры:",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
         Spacer(modifier = Modifier.height(8.dp))
-        FlexBoxGenreLayout(genres = details.genres, modifier = Modifier.fillMaxWidth())
+        FlexBoxGenreLayout(
+            genres = details.genres,
+            modifier = Modifier.fillMaxWidth()
+        )
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Описание:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(
+            text = "Описание:",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = details.description, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = details.description,
+            style = MaterialTheme.typography.bodyMedium
+        )
         Spacer(modifier = Modifier.height(8.dp))
-        if(details.ratings.isNotEmpty()){
-            RatingChart(ratings = details.ratings, modifier = Modifier.fillMaxWidth().height(250.dp))
+        if (details.ratings.isNotEmpty()) {
+            RatingChart(
+                ratings = details.ratings,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+            )
         }
         Spacer(modifier = Modifier.height(24.dp))
-        if(details.recommendedAnime.isNotEmpty()){
+        if (details.recommendedAnime.isNotEmpty()) {
             Text(
                 text = "Может понравиться",
                 style = MaterialTheme.typography.titleLarge,
@@ -140,9 +205,17 @@ private fun AnimeDetailContent(
                     .padding(bottom = 12.dp)
                     .clickable { navigateToRecommended(details.id) }
             )
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 8.dp), modifier = Modifier.fillMaxWidth()) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 items(details.recommendedAnime) { animeItem ->
-                    AnimeCard(data = animeItem, modifier = Modifier.width(200.dp), navigateToDetails = navigateToDetails)
+                    AnimeCard(
+                        data = animeItem,
+                        modifier = Modifier.width(200.dp),
+                        navigateToDetails = navigateToDetails
+                    )
                 }
             }
         }
@@ -173,14 +246,12 @@ private fun createGenreTextView(genre: AnimeGenre, context: Context): TextView {
         setTextColor(Color(genre.color).toArgb())
         textSize = 14f
         setPadding(32, 16, 32, 16)
-
         background = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = 24f
             setColor(adjustAlpha(Color(genre.color), 0.1f).toArgb())
             setStroke(2, Color(genre.color).toArgb())
         }
-
         gravity = Gravity.CENTER
         layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -200,7 +271,8 @@ private fun RatingInfo(rating: Float) {
             imageVector = Icons.Default.Star,
             contentDescription = "Рейтинг",
             tint = Color(0xFFFFC107),
-            modifier = Modifier.size(20.dp))
+            modifier = Modifier.size(20.dp)
+        )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = "%.1f".format(rating),
